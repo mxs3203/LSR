@@ -1,3 +1,3 @@
 # LSR Optimization
 
-![alt text](LSR_Plan.png)
+![alt text](LSR.png)
