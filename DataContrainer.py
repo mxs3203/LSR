@@ -4,13 +4,15 @@ import random
 
 import pandas as pd
 
-class HyperOCR:
+class Data:
 
     def __init__(self, file_to_read, data_range=[350, 850]):
         self.file_to_read = file_to_read
         self.data_frame = self.read_new_data()
         self.data_frame = self.data_frame.loc[(self.data_frame['nm'] >= data_range[0]) & (self.data_frame['nm'] <= data_range[1])]
         self.info = ""
+        self.min_nm = data_range[0]
+        self.max_nm = data_range[1]
 
     def read_new_data(self):
         cols = ['nm', 'value']
@@ -38,10 +40,10 @@ class HyperOCR:
     def get_info(self):
         return self.info
 
-    def randomize_the_data_a_bit(self):
-        change = self.data_frame.sample(200).index
-        self.data_frame.loc[change, 'value'] = self.data_frame.loc[change, 'value'] + random.randint(0, 100)
-        return self.data_frame
+    def randomize_the_data_a_bit(self, df):
+        change = df.sample(1000).index
+        df.loc[change, 'value'] = df.loc[change, 'value'] + random.randint(-5000, 16000)
+        return df
 
 
 # ocr = HyperOCR("1.ssm")

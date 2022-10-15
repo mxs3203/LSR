@@ -7,30 +7,30 @@ class AutoEncoder(torch.nn.Module):
 
         self.encoder = torch.nn.Sequential(
             torch.nn.Linear(input_size, 1024),
-            torch.nn.ReLU6(),
+            torch.nn.Sigmoid(),
             torch.nn.Linear(1024, 512),
-            torch.nn.ReLU6(),
+            torch.nn.Sigmoid(),
             torch.nn.Linear(512, 256),
-            torch.nn.ReLU6(),
+            torch.nn.Sigmoid(),
             torch.nn.Linear(256, 128),
-            torch.nn.ReLU6(),
+            torch.nn.Sigmoid(),
             torch.nn.Linear(128, 64),
-            torch.nn.ReLU6(),
+            torch.nn.Sigmoid(),
             torch.nn.Linear(64, 10),
             torch.nn.Sigmoid()
         )
 
         self.decoder = torch.nn.Sequential(
             torch.nn.Linear(10, 64),
-            torch.nn.ReLU6(),
+            torch.nn.ReLU(),
             torch.nn.Linear(64, 128),
-            torch.nn.ReLU6(),
+            torch.nn.ReLU(),
             torch.nn.Linear(128, 256),
-            torch.nn.ReLU6(),
+            torch.nn.ReLU(),
             torch.nn.Linear(256, 512),
-            torch.nn.ReLU6(),
+            torch.nn.ReLU(),
             torch.nn.Linear(512, 1024),
-            torch.nn.ReLU6(),
+            torch.nn.ReLU(),
             torch.nn.Linear(1024, input_size),
         )
 

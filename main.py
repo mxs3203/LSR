@@ -3,40 +3,35 @@ import random
 from torch.utils.data import TensorDataset, DataLoader
 
 from AutoEncoder import AutoEncoder
-from HyperOCR import HyperOCR
+from DataContrainer import  Data
 from LSR_comm import LSR_comm
 import torch
 import time
 import numpy as np
+from matplotlib import pyplot as plt
 
-from RefData import RefData
+STOP_THRESHOLD = 1e-2
 
-TIME_FOR_HYPEROCR_READ = 0.2  # SEC
-STOP_THRESHOLD = 1e-5
-
-def plot_curve(df):
-    #plt.scatter(df['nm'], df['value'])
-    #plt.show()
-    pass
+def plot_curve(df, new_curve):
+    a = plt.scatter(df['nm'], df['value'])
+    b = plt.scatter(df['nm'], new_curve)
+    plt.legend((a, b), ('Ref Curve', 'New Curve'))
+    plt.show()
 
 def main(lsr, model_param, optimizer_param, loss_function_param, encoded_param, cnt=0):
     print("Round: ", cnt)
     cnt += 1
 
     print("\t Reading new HyperOCR data...")
-    time.sleep(TIME_FOR_HYPEROCR_READ)
     # Read HYperOCR (Current Curve)
-    ocr = HyperOCR("/Users/au589901/PycharmProjects/LSR/1.smm")
-    ocr.read_new_data()
-    ocr.randomize_the_data_a_bit()
-    #plot_curve(ocr)
-    sensor_reading = ocr.get_data()
+    ocr = Data("/home/mateo/LSR/ZAGREB071022/Akrozprozor.ssm")
+    sensor_reading = ocr.randomize_the_data_a_bit(ocr.get_data())
+    #sensor_reading = ocr.get_data()
 
     # Read RefData
-    cm = RefData("/Users/au589901/PycharmProjects/LSR/ZAGREB071022/Akrozprozor.smm")
+    cm = Data("/home/mateo/LSR/ZAGREB071022/Bsoba.ssm")
     ref = cm.get_data()
 
-    lsr.ask_for_status()
     lsr.set_column_data(1, encoded_param)
     lsr.set_column_data(2, lsr.compute_column_based_on_first(0.7))
     lsr.set_column_data(3, lsr.compute_column_based_on_first(0.5))
@@ -57,6 +52,11 @@ def generate_random():
     max = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
     return random.sample(range(1, 100), 10)
 
+def min_max_transform(X,in_min=0, in_max=600, out_min=0, out_max=100):
+    old_range = (in_max - in_min)
+    new_range = (out_max - out_min)
+    new_val = (((X - in_min) * new_range) / old_range) + out_min
+    return new_val
 
 def find_params(model_param, optimizer_param, loss_function_param, ref_param, current_curve_param):
     current_curve = torch.Tensor([current_curve_param['value'].values])
@@ -65,8 +65,8 @@ def find_params(model_param, optimizer_param, loss_function_param, ref_param, cu
     my_dataloader = DataLoader(my_dataset, batch_size=1)
     losses = []
 
-    t_end = time.time() + 2
-    print("\t Optimizing for 5 secs")
+    t_end = time.time() + 1
+    print("\t Optimizing for 1 secs")
     while(time.time() <= t_end):
         for x, y in my_dataloader:
             reconstructed, encoded = model_param(x)
@@ -77,7 +77,8 @@ def find_params(model_param, optimizer_param, loss_function_param, ref_param, cu
             losses.append(loss.item())
 
     encoded = encoded.squeeze().tolist()
-    encoded = [int(item * 100) for item in encoded]
+    plot_curve(ref_param, reconstructed.detach().cpu())
+    encoded = [int(item *100)  for item in encoded]
     print("\t Current 10 vals: ", encoded)
     print("\t Average Error between curves: ", np.mean(losses))
 
@@ -85,10 +86,11 @@ def find_params(model_param, optimizer_param, loss_function_param, ref_param, cu
 
 
 if __name__ == "__main__":
-    # /dev/cu.usbmodem142201
-    lsr = LSR_comm("/dev/cu.usbmodem142201")
+    # /dev/cu.usbmodem142201, COM3,/dev/ttyACM0
+    lsr = LSR_comm("/dev/ttyACM0")
     time.sleep(1)
     model = AutoEncoder(input_size=1001)
+    model.to("cpu")
     loss_function = torch.nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
     main(lsr, model, optimizer, loss_function, generate_random(), cnt=0)
