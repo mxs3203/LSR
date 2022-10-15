@@ -2,55 +2,59 @@ import random
 
 from torch.utils.data import TensorDataset, DataLoader
 
-from AutoEncoder import AutoEncoder, WeightClipper
+from AutoEncoder import AutoEncoder
 from HyperOCR import HyperOCR
 from LSR_comm import LSR_comm
 import torch
 import time
-import timeit
 import numpy as np
 
 from RefData import RefData
 
 TIME_FOR_HYPEROCR_READ = 0.2  # SEC
-STOP_THRESHOLD = 1e-3
+STOP_THRESHOLD = 1e-5
 
+def plot_curve(df):
+    #plt.scatter(df['nm'], df['value'])
+    #plt.show()
+    pass
 
-def main(model_param, optimizer_param, loss_function_param, encoded_param, cnt=0):
+def main(lsr, model_param, optimizer_param, loss_function_param, encoded_param, cnt=0):
     print("Round: ", cnt)
     cnt += 1
 
-    lsr = LSR_comm("/dev/cu.usbmodem142201")
+    print("\t Reading new HyperOCR data...")
+    time.sleep(TIME_FOR_HYPEROCR_READ)
+    # Read HYperOCR (Current Curve)
+    ocr = HyperOCR("/Users/au589901/PycharmProjects/LSR/1.smm")
+    ocr.read_new_data()
+    ocr.randomize_the_data_a_bit()
+    #plot_curve(ocr)
+    sensor_reading = ocr.get_data()
+
+    # Read RefData
+    cm = RefData("/Users/au589901/PycharmProjects/LSR/ZAGREB071022/Akrozprozor.smm")
+    ref = cm.get_data()
+
     lsr.ask_for_status()
     lsr.set_column_data(1, encoded_param)
-    lsr.set_column_data(2, lsr.compute_column_based_on_first(0.75))
+    lsr.set_column_data(2, lsr.compute_column_based_on_first(0.7))
     lsr.set_column_data(3, lsr.compute_column_based_on_first(0.5))
     lsr.set_column_data(4, lsr.compute_column_based_on_first(0.3))
     lsr.run()
 
-    print("\t Reading new HyperOCR data...")
-    time.sleep(TIME_FOR_HYPEROCR_READ)
-
-    # Read HYperOCR (Current Curve)
-    ocr = HyperOCR("1.ssm")
-    sensor_reading = ocr.randomize_the_data_a_bit()
-
-
-    # Read RefData
-    cm = RefData("/Users/au589901/PycharmProjects/LSR_commands/ZAGREB071022/MORE10cm/more.IRR")
-    ref = cm.get_data()
-
     # Find 10 numbers that match those curves the best
-    model, optimizer, loss_function, encoded, loss = find_params(model_param, optimizer_param, loss_function_param, ref,
-                                                           sensor_reading)
+    model, optimizer, loss_function, encoded, loss = find_params(model_param, optimizer_param, loss_function_param, ref, sensor_reading)
     if loss >= STOP_THRESHOLD:
-        main(model, optimizer, loss_function, encoded, cnt)
+        main(lsr, model, optimizer, loss_function, encoded, cnt)
     else:
+        #lsr.stop()
         print("Curve found...")
         print(encoded)
         print("Stopping..")
 
 def generate_random():
+    max = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
     return random.sample(range(1, 100), 10)
 
 
@@ -61,7 +65,7 @@ def find_params(model_param, optimizer_param, loss_function_param, ref_param, cu
     my_dataloader = DataLoader(my_dataset, batch_size=1)
     losses = []
 
-    t_end = time.time() + 5
+    t_end = time.time() + 2
     print("\t Optimizing for 5 secs")
     while(time.time() <= t_end):
         for x, y in my_dataloader:
@@ -81,7 +85,10 @@ def find_params(model_param, optimizer_param, loss_function_param, ref_param, cu
 
 
 if __name__ == "__main__":
+    # /dev/cu.usbmodem142201
+    lsr = LSR_comm("/dev/cu.usbmodem142201")
+    time.sleep(1)
     model = AutoEncoder(input_size=1001)
     loss_function = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-6)
-    main(model, optimizer, loss_function, generate_random(), cnt=0)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-5)
+    main(lsr, model, optimizer, loss_function, generate_random(), cnt=0)

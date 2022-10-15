@@ -8,13 +8,13 @@ class HyperOCR:
 
     def __init__(self, file_to_read, data_range=[350, 850]):
         self.file_to_read = file_to_read
-        self.data_frame = self.read_new_data(file_to_read)
+        self.data_frame = self.read_new_data()
         self.data_frame = self.data_frame.loc[(self.data_frame['nm'] >= data_range[0]) & (self.data_frame['nm'] <= data_range[1])]
         self.info = ""
 
-    def read_new_data(self, file_to_read):
+    def read_new_data(self):
         cols = ['nm', 'value']
-        with open(file_to_read) as f:
+        with open(self.file_to_read) as f:
             data = csv.reader(f, delimiter="\t")
             cnt = 0
             lst = []
