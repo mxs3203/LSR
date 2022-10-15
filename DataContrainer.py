@@ -42,7 +42,7 @@ class Data:
 
     def randomize_the_data_a_bit(self, df):
         change = df.sample(1000).index
-        df.loc[change, 'value'] = df.loc[change, 'value'] + random.randint(-5000, 16000)
+        df.loc[change, 'value'] = df.loc[change, 'value'] + random.randint(-30000, 30000)
         return df
 
 
