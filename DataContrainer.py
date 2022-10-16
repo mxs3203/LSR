@@ -13,6 +13,7 @@ class Data:
         self.info = ""
         self.min_nm = data_range[0]
         self.max_nm = data_range[1]
+        self.data_frame = self.data_frame.iloc[::5, :]
 
     def read_new_data(self):
         cols = ['nm', 'value']
@@ -41,7 +42,7 @@ class Data:
         return self.info
 
     def randomize_the_data_a_bit(self, df):
-        change = df.sample(1000).index
+        change = df.sample(100).index
         df.loc[change, 'value'] = df.loc[change, 'value'] + random.randint(-30000, 30000)
         return df
 

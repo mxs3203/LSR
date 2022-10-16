@@ -34,7 +34,7 @@ class LSR_comm:
             self.columns_with_data.append(column)
         else:
             print("\t List should contain exactly 10 numbers")
-        time.sleep(2)
+        time.sleep(1)
 
     # Generate second,third or fourth column based on values of first column (75%,50% and 30% intesity)
     def compute_column_based_on_first(self, coef):
