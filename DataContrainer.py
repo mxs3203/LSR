@@ -9,6 +9,7 @@ class Data:
     def __init__(self, file_to_read, data_range=[350, 850]):
         self.file_to_read = file_to_read
         self.data_frame = self.read_new_data()
+        self.original_data = self.data_frame
         self.data_frame = self.data_frame.loc[(self.data_frame['nm'] >= data_range[0]) & (self.data_frame['nm'] <= data_range[1])]
         self.info = ""
         self.min_nm = data_range[0]

@@ -12,11 +12,11 @@ class LSR_comm:
         time.sleep(2)
 
     def send_any_command(self, msg):
-        print("Sent: ",bytes(msg, 'utf-8'))
+        #print("Sent: ",bytes(msg, 'utf-8'))
         self.S.write(bytes(msg, 'utf-8'))
         time.sleep(0.05)
         response = self.S.readlines()
-        print("\t LSR reponsed: ", response)
+        #print("\t LSR reponsed: ", response)
 
     def ask_for_status(self):
         msg = "{\"DO\":\"status\"}"
@@ -34,7 +34,7 @@ class LSR_comm:
             self.columns_with_data.append(column)
         else:
             print("\t List should contain exactly 10 numbers")
-        time.sleep(1)
+        time.sleep(0.1)
 
     # Generate second,third or fourth column based on values of first column (75%,50% and 30% intesity)
     def compute_column_based_on_first(self, coef):
