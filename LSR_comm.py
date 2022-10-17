@@ -16,7 +16,7 @@ class LSR_comm:
         self.S.write(bytes(msg, 'utf-8'))
         time.sleep(0.05)
         response = self.S.readlines()
-        #print("\t LSR reponsed: ", response)
+        print("\t LSR reponsed: ", response)
 
     def ask_for_status(self):
         msg = "{\"DO\":\"status\"}"

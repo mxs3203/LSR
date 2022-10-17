@@ -9,14 +9,15 @@ import numpy as np
 
 def main():
 
-    cnt = 1
+    cnt = 560
     # /dev/cu.usbmodem142201, COM3,/dev/ttyACM0
-    lsr = LSR_comm("/dev/ttyACM0")
+    lsr = LSR_comm("COM3")
     time.sleep(3) # waiting for automation start
 
     while(True):
         print("Starting round: ", cnt)
         ten_nums = generate_random()
+        print(ten_nums)
         lsr.set_column_data(1, ten_nums)
         lsr.set_column_data(2, lsr.compute_column_based_on_first(0.7))
         lsr.set_column_data(3, lsr.compute_column_based_on_first(0.5))
