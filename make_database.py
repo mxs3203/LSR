@@ -38,9 +38,19 @@ def main():
 
 
 def generate_random():
-    return random.sample(range(1, 100), 10)
+    # nums = [random.sample(range(0, 40), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 100), 1),
+    #         random.sample(range(0, 40), 1)]
+    #return [element for nestedlist in nums for element in nestedlist]
+    return random.sample(range(0, 100), 10)
 
 
 if __name__ == "__main__":
-    total = []
     main()
