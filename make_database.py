@@ -1,20 +1,13 @@
 import os
 import pickle
 import random
-import pandas as pd
-from torch.autograd import Variable
-from torch.utils.data import TensorDataset, DataLoader
-
-from AutoEncoder import AutoEncoder
 from DataContrainer import  Data
 from DatabaseItem import Item
 from LSR_comm import LSR_comm
 import time
-
+import numpy as np
 
 def main():
-    with open('example_database/train_data/obs_1.pickle', 'rb') as handle:
-        b = pickle.load(handle)
 
     cnt = 1
     # /dev/cu.usbmodem142201, COM3,/dev/ttyACM0
@@ -45,9 +38,9 @@ def main():
 
 
 def generate_random():
-    max = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
     return random.sample(range(1, 100), 10)
 
 
 if __name__ == "__main__":
+    total = []
     main()
