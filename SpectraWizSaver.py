@@ -1,22 +1,30 @@
 import time
+import admin
 
 import pyautogui
 import re
 
+def get_spectra_window():
+    windows = pyautogui.getAllWindows()
+    spectra = None
+    for w in windows:
+        if w.title == "SpectraWiz  Spectrometer OS v5.33 (c) 2014    www.StellarNet.us  ":
+            spectra = w
+    spectra.activate()
+    return spectra
 
-def save():
-    # Programm should be in focus
-    pyautogui.keyDown("lalt")
-    time.slep(0.3)
-    pyautogui.press("f")
-    time.slep(0.3)
-    pyautogui.press("s")
-    time.slep(0.3)
-    pyautogui.press("s")
-
-    time.slep(0.3)
-    pyautogui.press("a")
-    time.slep(0.3)
+def save_curve(cnt, time_between = 0.01):
+    spectra_window = get_spectra_window()
+    pyautogui.keyDown("altleft")
+    time.sleep(time_between)
+    pyautogui.press("f") # file
+    time.sleep(time_between)
+    pyautogui.press("s") # save
+    time.sleep(time_between)
+    pyautogui.press("s") # sample
+    pyautogui.keyUp('altleft') # release
+    time.sleep(time_between)
+    pyautogui.typewrite(cnt)
+    time.sleep(time_between)
     pyautogui.press("enter")
-    time.slep(0.5)
-    pyautogui.press("f")
+    time.sleep(time_between)

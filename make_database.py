@@ -1,18 +1,23 @@
 import os
 import pickle
 import random
+
+import admin
 from DataContrainer import  Data
 from DatabaseItem import Item
 from LSR_comm import LSR_comm
 import time
 import numpy as np
 
+from SpectraWizSaver import save_curve
+
+
 def main():
 
-    cnt = 560
+    cnt = 1
     # /dev/cu.usbmodem142201, COM3,/dev/ttyACM0
     lsr = LSR_comm("COM3")
-    time.sleep(3) # waiting for automation start
+    time.sleep(1) # waiting for automation start
 
     while(True):
         print("Starting round: ", cnt)
@@ -23,6 +28,10 @@ def main():
         lsr.set_column_data(3, lsr.compute_column_based_on_first(0.5))
         lsr.set_column_data(4, lsr.compute_column_based_on_first(0.3))
         lsr.run()  # this take 1 sec
+        # Lets wait for the curve
+        time.sleep(1)
+        # saving takes 0.3sec
+        save_curve("{}".format(cnt))
 
         print("Waiting for file...", cnt,".ssm")
         while not os.path.exists("example_database/{}.ssm".format(cnt)):
@@ -54,4 +63,6 @@ def generate_random():
 
 
 if __name__ == "__main__":
+    # if not admin.isUserAdmin():
+    #     admin.runAsAdmin()
     main()
