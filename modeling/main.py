@@ -1,100 +1,60 @@
-import random
-
 from torch.autograd import Variable
+from torch.utils.data import DataLoader
 
-from DataContrainer import  Data
-from LSR_comm import LSR_comm
+from modeling.Curve_Dataloader import Curve_Loader
 import torch
-import time
 import numpy as np
-from matplotlib import pyplot as plt
-
 from modeling.Predict10 import Predict10
+import matplotlib.pyplot as plt
 
-STOP_THRESHOLD = 1e-2
+loader = Curve_Loader("~/LSR/modeling/input_data.csv")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = "cpu"
+train_size = int(len(loader) * 0.75)
+test_size = len(loader) - train_size
+print("Train size: ", train_size)
+print("Test size: ", test_size)
+train_set, val_set = torch.utils.data.random_split(loader, [train_size, test_size])
 
-def plot_curve(df, new_curve):
-    a = plt.scatter(df['nm'], df['value'])
-    b = plt.scatter(df['nm'], new_curve)
-    plt.legend((a, b), ('Ref Curve', 'New Curve'))
+model = Predict10(curve_size=322)
+model.to(device)
+batch_size = 128
+epochs = 1000
+LR = 1e-3
+WD = 1e-5
+cost_func = torch.nn.MSELoss()
+optimizer = torch.optim.Adagrad(model.parameters(),lr=LR, weight_decay=WD)
+
+trainLoader = DataLoader(train_set, batch_size=batch_size, num_workers=10, shuffle=True)
+valLoader = DataLoader(val_set, batch_size=batch_size,num_workers=10, shuffle=True)
+
+
+def makeCurve(curve, real_ten_nums, predicted_ten_nums):
+    real_ten_nums = [round(item, 2) for item in real_ten_nums]
+    predicted_ten_nums = [round(item, 2) for item in predicted_ten_nums]
+    plt.plot(range(0, 322, 1), curve)
+    plt.text(0, 0, real_ten_nums, fontsize=8)
+    plt.text(0, 0.1, predicted_ten_nums, fontsize=8)
     plt.show()
-
-def main(lsr, model_param, optimizer_param, loss_function_param, encoded_param, cnt=0):
-    print("Round: ", cnt)
-    cnt += 1
-
-    lsr.set_column_data(1, encoded_param)
-    lsr.set_column_data(2, lsr.compute_column_based_on_first(0.7))
-    lsr.set_column_data(3, lsr.compute_column_based_on_first(0.5))
-    lsr.set_column_data(4, lsr.compute_column_based_on_first(0.3))
-    lsr.run()
-    time.sleep(5) # at this time we should open spectra wiz and save the file
-
-    print("\t Reading new HyperOCR data...")
-    # Read HYperOCR (Current Curve)
-    ocr = Data("/ZAGREB071022/Akrozprozor.ssm")
-    sensor_reading = ocr.randomize_the_data_a_bit(ocr.get_data())
-    #sensor_reading = ocr.get_data()
-
-    # Read RefData
-    cm = Data("/ZAGREB071022/Bsoba.ssm")
-    ref = cm.get_data()
+    pass
 
 
-    # Find 10 numbers that match those curves the best
-    model, optimizer, loss_function, new_10, loss = find_params(model_param=model_param,
-                                                                 optimizer_param=optimizer_param,
-                                                                 loss_function_param=loss_function_param,
-                                                                 ref_param=ref,
-                                                                 current_curve=sensor_reading,
-                                                                 encoded_param=encoded_param)
-    if loss >= STOP_THRESHOLD:
-        main(lsr=lsr, model_param=model, optimizer_param=optimizer,
-             loss_function_param=loss_function, encoded_param=new_10, cnt=cnt)
-    else:
-        #lsr.stop()
-        print("Curve found...")
-        print(new_10)
-        print("Stopping..")
-
-def generate_random():
-    max = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
-    return random.sample(range(1, 100), 10)
-
-def min_max_transform(X,in_min=0, in_max=6, out_min=0, out_max=100):
-    old_range = (in_max - in_min)
-    new_range = (out_max - out_min)
-    new_val = (((X - in_min) * new_range) / old_range) + out_min
-    return new_val
-
-def find_params(model_param, optimizer_param, loss_function_param, ref_param, current_curve, encoded_param):
-
-    ref = Variable(torch.Tensor(ref_param['value'].values),requires_grad=True)
-    current_curve = Variable(torch.Tensor(current_curve['value'].values), requires_grad=True)
-    encoded_param = torch.Tensor([encoded_param])
-    input_to_model = encoded_param
-    for i in range(100):
-        input_to_model = model_param(input_to_model)
-        loss = loss_function_param(current_curve, ref)
-        optimizer_param.zero_grad()
+for ep in range(epochs):
+    train_ep_loss,test_ep_loss = [],[]
+    model.train()
+    for x, y in trainLoader:
+        cost_func.zero_grad()
+        y_hat = model(x.to(device).float())
+        loss = cost_func(y_hat, y.float())
+        train_ep_loss.append(loss.item())
         loss.backward()
-        optimizer_param.step()
+        optimizer.step()
 
-    new_10 = input_to_model.squeeze().detach().cpu()
-    plot_curve(ref_param, current_curve.detach().cpu())
-    new_10 = [int(min_max_transform(item))  for item in new_10]
-    #print("\t Current 10 vals: ", encoded)
-    print("\t Average Error between curves: ", np.mean(loss.item()))
-
-    return model_param, optimizer_param, loss_function_param, new_10,  np.mean(loss.item())
-
-
-if __name__ == "__main__":
-    # /dev/cu.usbmodem142201, COM3,/dev/ttyACM0
-    lsr = LSR_comm("/dev/ttyACM0")
-    time.sleep(1)
-    model = Predict10()
-    model.to("cpu")
-    loss_function = torch.nn.MSELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-1, weight_decay=1e-2)
-    main(lsr=lsr, model_param=model, optimizer_param=optimizer, loss_function_param=loss_function, encoded_param=generate_random(), cnt=0)
+        model.eval()
+        for x, y in valLoader:
+            y_hat = model(x.to(device).float())
+            loss = cost_func(y_hat, y.float())
+            test_ep_loss.append(loss.item())
+    if ep % 10 == 0:
+        makeCurve(x[0, :].detach().cpu().numpy(), y[0, :].detach().cpu().numpy(), y_hat[0, :].detach().cpu().numpy())
+    print("Epoch: {} \n\t Train Loss: {} \n\t Test Loss: {}".format(ep, np.mean(train_ep_loss),np.mean(test_ep_loss)))
