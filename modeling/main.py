@@ -1,9 +1,7 @@
 import random
 
 from torch.autograd import Variable
-from torch.utils.data import TensorDataset, DataLoader
 
-from AutoEncoder import AutoEncoder
 from DataContrainer import  Data
 from LSR_comm import LSR_comm
 import torch
@@ -11,7 +9,7 @@ import time
 import numpy as np
 from matplotlib import pyplot as plt
 
-from Predict10 import Predict10
+from modeling.Predict10 import Predict10
 
 STOP_THRESHOLD = 1e-2
 
@@ -34,12 +32,12 @@ def main(lsr, model_param, optimizer_param, loss_function_param, encoded_param, 
 
     print("\t Reading new HyperOCR data...")
     # Read HYperOCR (Current Curve)
-    ocr = Data("/home/mateo/LSR/ZAGREB071022/Akrozprozor.ssm")
+    ocr = Data("/ZAGREB071022/Akrozprozor.ssm")
     sensor_reading = ocr.randomize_the_data_a_bit(ocr.get_data())
     #sensor_reading = ocr.get_data()
 
     # Read RefData
-    cm = Data("/home/mateo/LSR/ZAGREB071022/Bsoba.ssm")
+    cm = Data("/ZAGREB071022/Bsoba.ssm")
     ref = cm.get_data()
 
 
