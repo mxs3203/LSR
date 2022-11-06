@@ -2,7 +2,7 @@ import torch
 
 
 class Predict10(torch.nn.Module):
-    def __init__(self, curve_size=322):
+    def __init__(self, curve_size):
         super().__init__()
 
         self.decoder = torch.nn.Sequential(

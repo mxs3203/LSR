@@ -7,22 +7,30 @@ import numpy as np
 from modeling.Predict10 import Predict10
 import matplotlib.pyplot as plt
 
-loader = Curve_Loader("~/LSR/modeling/input_data.csv")
+print(torch.__version__)
+print(torch.version.cuda)
+print(torch.backends.cudnn.version())
+print(torch.cuda.get_device_name(0))
+print(torch.cuda.get_device_properties(0))
+
+loader = Curve_Loader("~/LSR/modeling/input_data3_with_fft.csv", curve_size=1606, fft_size=30)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = "cpu"
-train_size = int(len(loader) * 0.75)
+
+device = 'cpu'
+
+train_size = int(len(loader) * 0.6)
 test_size = len(loader) - train_size
 print("Train size: ", train_size)
 print("Test size: ", test_size)
 train_set, val_set = torch.utils.data.random_split(loader, [train_size, test_size])
 
-model = Predict10(curve_size=322)
+model = Predict10(curve_size=30)
 model.to(device)
 batch_size = 128
 epochs = 1000
-LR = 1e-3
-WD = 1e-5
-cost_func = torch.nn.MSELoss()
+LR = 1e-2
+WD = 1e-3
+cost_func = torch.nn.MSELoss(reduction="sum", reduce=True)
 optimizer = torch.optim.Adagrad(model.parameters(),lr=LR, weight_decay=WD)
 
 trainLoader = DataLoader(train_set, batch_size=batch_size, num_workers=10, shuffle=True)
@@ -32,9 +40,9 @@ valLoader = DataLoader(val_set, batch_size=batch_size,num_workers=10, shuffle=Tr
 def makeCurve(curve, real_ten_nums, predicted_ten_nums):
     real_ten_nums = [round(item, 2) for item in real_ten_nums]
     predicted_ten_nums = [round(item, 2) for item in predicted_ten_nums]
-    plt.plot(range(0, 322, 1), curve)
-    plt.text(0, 0, real_ten_nums, fontsize=8)
-    plt.text(0, 0.1, predicted_ten_nums, fontsize=8)
+    plt.bar(range(0, 30, 1), curve)
+    plt.text(0, 1, real_ten_nums, fontsize=8,c="green")
+    plt.text(0, 0.96, predicted_ten_nums, fontsize=8,c="red")
     plt.show()
     pass
 
