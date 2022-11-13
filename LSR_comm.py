@@ -22,11 +22,13 @@ class LSR_comm:
         msg = "{\"DO\":\"status\"}"
         self.send_any_command(msg)
 
-    def set_column_data(self, column, list_of_nums):
+    def set_column_data(self, column, list_of_nums, coef=10):
+        list_of_nums = [item * coef for item in list_of_nums]
         if len(list_of_nums) == 10:
             if column == 1:
                 self.column_1 = list_of_nums
-            msg = "{\"DATA\":{" + "\"Col-{}\": [{},{},{},{},{},{},{},{},{},{}]".format(column,list_of_nums[0],list_of_nums[1],list_of_nums[2],
+            msg = "{\"DATA\":{" + "\"Col-{}\": [{},{},{},{},{},{},{},{},{},{}]".format(column,list_of_nums[0],list_of_nums[1],
+                                                                                       list_of_nums[2],
                                                                      list_of_nums[3],list_of_nums[4], list_of_nums[5],
                                                                      list_of_nums[6],list_of_nums[7],list_of_nums[8],
                                                                      list_of_nums[9]) + "}}"
@@ -62,5 +64,5 @@ class LSR_comm:
         self.send_any_command(msg)
 
 
-# LSR = LSR_comm("COM3")
-# LSR.stop()
+# lsr = LSR_comm("COM3")
+# lsr.stop()
