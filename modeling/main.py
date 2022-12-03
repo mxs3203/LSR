@@ -13,12 +13,12 @@ print(torch.backends.cudnn.version())
 print(torch.cuda.get_device_name(0))
 print(torch.cuda.get_device_properties(0))
 
-loader = Curve_Loader("~/LSR/modeling/input_data3_with_fft.csv", curve_size=1606, fft_size=30)
+loader = Curve_Loader("~/LSR/modeling/input_data_with_fft.csv",fft_size=30)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 device = 'cpu'
 
-train_size = int(len(loader) * 0.6)
+train_size = int(len(loader) * 0.75)
 test_size = len(loader) - train_size
 print("Train size: ", train_size)
 print("Test size: ", test_size)
@@ -26,11 +26,11 @@ train_set, val_set = torch.utils.data.random_split(loader, [train_size, test_siz
 
 model = Predict10(curve_size=30)
 model.to(device)
-batch_size = 128
+batch_size = 64
 epochs = 1000
-LR = 1e-2
+LR = 1e-3
 WD = 1e-3
-cost_func = torch.nn.MSELoss(reduction="sum", reduce=True)
+cost_func = torch.nn.MSELoss(reduction="mean", reduce=True)
 optimizer = torch.optim.Adagrad(model.parameters(),lr=LR, weight_decay=WD)
 
 trainLoader = DataLoader(train_set, batch_size=batch_size, num_workers=10, shuffle=True)
@@ -46,7 +46,8 @@ def makeCurve(curve, real_ten_nums, predicted_ten_nums):
     plt.show()
     pass
 
-
+best_model = None
+best_loss = float("+Inf")
 for ep in range(epochs):
     train_ep_loss,test_ep_loss = [],[]
     model.train()
@@ -66,3 +67,8 @@ for ep in range(epochs):
     if ep % 10 == 0:
         makeCurve(x[0, :].detach().cpu().numpy(), y[0, :].detach().cpu().numpy(), y_hat[0, :].detach().cpu().numpy())
     print("Epoch: {} \n\t Train Loss: {} \n\t Test Loss: {}".format(ep, np.mean(train_ep_loss),np.mean(test_ep_loss)))
+    if(np.mean(test_ep_loss) < best_loss):
+        best_loss = np.mean(test_ep_loss)
+        best_model = model
+        print("Best loss detected, saving model as the best model...")
+        torch.save(model.state_dict(), "best_model.pth")

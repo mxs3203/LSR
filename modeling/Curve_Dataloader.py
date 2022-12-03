@@ -8,17 +8,20 @@ from sklearn.preprocessing import MinMaxScaler
 
 class Curve_Loader(Dataset):
 
-    def __init__(self, csv_file, curve_size,fft_size=30):
+    def __init__(self, csv_file,fft_size):
 
         self.annotation = pd.read_csv(csv_file, sep=",", )
         self.annotation = self.annotation.iloc[:, 1:] # remove first column
-        scalerX = MinMaxScaler()
-        scalerX_fft = MinMaxScaler()
-        scalerY = MinMaxScaler()
-        self.y = pd.DataFrame(scalerY.fit_transform(self.annotation.iloc[:, :10])) # first 10 nums
-        self.x_fft = pd.DataFrame(scalerX.fit_transform(self.annotation.iloc[:, 11:(11+fft_size)])) # raw curve
-        self.x = pd.DataFrame(scalerX_fft.fit_transform(self.annotation.iloc[:, (11+fft_size)::]))  # fft values
-        self.x_both = pd.DataFrame(scalerX_fft.fit_transform(self.annotation.iloc[:, 11::]))  # fft values
+        self.scalerX = MinMaxScaler()
+        self.scalerX_fft = MinMaxScaler()
+        self.scalerY = MinMaxScaler()
+        self.y = pd.DataFrame(self.scalerY.fit_transform(self.annotation.iloc[:, :10])) # first 10 nums
+        self.x_fft = pd.DataFrame(self.scalerX.fit_transform(self.annotation.iloc[:, 11:(11+fft_size)])) # raw curve
+        self.x = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, (11+fft_size)::]))  # fft values
+        self.x_both = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, 11::]))  # fft values
+
+    def getScaler(self):
+        return self.scalerX_fft
 
     def __len__(self):
         return len(self.annotation)
