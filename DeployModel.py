@@ -77,7 +77,7 @@ while not os.path.exists("example_database/{}.ssm".format(input_curve_file + "_r
     time.sleep(1)
 extracetd_reconstructed, reconstructed_curve = readAndCurateCurve("example_database/{}.ssm".format(input_curve_file + "_recreated"), scaler)
 
-mse = ((reconstructed_curve - curve)**2).mean(axis=ax)
+mse = ((reconstructed_curve - curve)**2).mean(axis=0)
 print(mse)
 plt.figure(figsize=(12, 6))
 plt.subplot(121)
