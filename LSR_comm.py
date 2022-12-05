@@ -12,7 +12,7 @@ class LSR_comm:
         time.sleep(2)
 
     def send_any_command(self, msg):
-        #print("Sent: ",bytes(msg, 'utf-8'))
+        print("Sent: ",bytes(msg, 'utf-8'))
         self.S.write(bytes(msg, 'utf-8'))
         time.sleep(0.05)
         response = self.S.readlines()
@@ -23,9 +23,10 @@ class LSR_comm:
         self.send_any_command(msg)
 
     def set_column_data(self, column, list_of_nums, coef=10):
-        list_of_nums = [item * coef for item in list_of_nums]
+
         if len(list_of_nums) == 10:
             if column == 1:
+                list_of_nums = [item * coef for item in list_of_nums]
                 self.column_1 = list_of_nums
             msg = "{\"DATA\":{" + "\"Col-{}\": [{},{},{},{},{},{},{},{},{},{}]".format(column,list_of_nums[0],list_of_nums[1],
                                                                                        list_of_nums[2],

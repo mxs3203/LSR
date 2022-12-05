@@ -11,10 +11,11 @@ import numpy as np
 
 from SpectraWizSaver import save_curve
 
+DIT = 10
 
 def main():
 
-    cnt = 1073
+    cnt = 793
     # /dev/cu.usbmodem142201, COM3,/dev/ttyACM0
     lsr = LSR_comm("COM3")
     time.sleep(1) # waiting for autsomation start
@@ -40,7 +41,10 @@ def main():
         print("Reading Curve..")
         ocr = Data("example_database/{}.ssm".format(cnt))
         print("Saving pickle..")
-        item = Item(curve=ocr, ten_nums=ten_nums, file_name="example_database/{}.ssm".format(cnt), cnt=cnt)
+        item = Item(curve=ocr, ten_nums=ten_nums,
+                    file_name="example_database/{}.ssm".format(cnt),
+                    cnt=cnt,
+                    DIT=DIT)
         with open(r'example_database/train_data/obs_{}.pickle'.format(cnt), 'wb') as f:
             pickle.dump(item, f)
             f.close()
@@ -55,22 +59,22 @@ def main():
 
 def generate_random(): # [70,50,30,80,100,80, 50, 50,80,80]
     # Realistic Curves setup
-    # nums = [random.sample(range(10, 90), 1),
-    #         random.sample(range(10, 70), 1),
-    #         random.sample(range(10, 80), 1),
-    #         random.sample(range(50, 100), 1),
-    #         random.sample(range(50, 100), 1),
-    #         random.sample(range(40, 80), 1),
-    #         random.sample(range(40, 90), 1),
-    #         random.sample(range(30, 90), 1),
-    #         random.sample(range(20, 90), 1),
-    #         random.sample(range(20, 90), 1)]
-    # return [element for nestedlist in nums for element in nestedlist]
+    nums = [random.sample(range(10, 90), 1),
+            random.sample(range(10, 70), 1),
+            random.sample(range(10, 80), 1),
+            random.sample(range(50, 100), 1),
+            random.sample(range(50, 100), 1),
+            random.sample(range(40, 80), 1),
+            random.sample(range(40, 90), 1),
+            random.sample(range(30, 90), 1),
+            random.sample(range(20, 90), 1),
+            random.sample(range(20, 90), 1)]
+    return [element for nestedlist in nums for element in nestedlist]
     # single channel setup
     #nums = [[0],[0],[0],[0],[0],[0],[0],[0], [0],random.sample(range(0, 100), 1)]
     #return [element for nestedlist in nums for element in nestedlist]
     # complete randomness
-    return random.sample(range(0, 100), 10)
+    #return random.sample(range(0, 100), 10)
 
 
 if __name__ == "__main__":
