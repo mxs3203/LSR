@@ -3,8 +3,8 @@ import pickle
 import random
 
 from DatabaseCreation import admin
-from DatabaseCreation.DataContrainer import  Data
-from DatabaseCreation.DatabaseItem import Item
+from TrainingDataCreation.DataContrainer import  Data
+from TrainingDataCreation.DatabaseItem import Item
 from LSR_comm import LSR_comm
 import time
 

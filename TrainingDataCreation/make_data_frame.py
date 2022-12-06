@@ -22,7 +22,7 @@ for f in glob.glob("/home/mateo/LSR/example_database/train_data/*.pickle"):
         a = pd.read_pickle(f)
         curve = a.curve.data_frame['value'].values
         extracted_fft = fft_for_curve(curve, f_ratio=0.2)
-        row = a.ten_nums
+        row = [n *10 for n in a.ten_nums]
         row.append(-1)
         row.extend(extracted_fft)
         row.extend(curve)
