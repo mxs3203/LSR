@@ -20,8 +20,11 @@ class Curve_Loader(Dataset):
         self.x = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, (11+fft_size)::]))  # fft values
         self.x_both = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, 11::]))  # fft values
 
-    def getScaler(self):
+    def getScalerX(self):
         return self.scalerX_fft
+
+    def getScalerY(self):
+        return self.scalerY
 
     def __len__(self):
         return len(self.annotation)

@@ -27,32 +27,19 @@ time.sleep(1)  # waiting for automation start
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-model = Predict10(curve_size=30)
+model = Predict10(curve_size=40)
 model.load_state_dict(torch.load("best_model.pth"))
 model.eval()
 
-
-def fft_for_curve(curve, sr=201, nummber_of_freqs=30):
-    fft_transform = fft(curve)
-    N = len(curve)
-    n = np.arange(N)
-    T = N / sr
-    ts = 1.0 / sr
-    t = np.arange(0, 1, ts)
-    freq = n / T
-    plt.figure(figsize=(12, 6))
-    plt.subplot(121)
-    plt.stem(freq, np.abs(fft_transform), 'b', markerfmt=" ", basefmt="-b")
-    plt.xlabel('Freq (Hz)')
-    plt.ylabel('FFT Amplitude |X(freq)|')
-    plt.xlim(0, nummber_of_freqs)
-    plt.subplot(122)
-    plt.plot(t, ifft(fft_transform), 'r')
-    plt.xlabel('Time (s)')
-    plt.ylabel('Amplitude')
-    plt.tight_layout()
+def fft_for_curve(curve, f_ratio=1, DURATION=201):
+    yf = np.fft.fft(curve)
+    freq = np.linspace(0, 1, len(yf))
+    num_freq_bins = int(len(freq) * f_ratio)
+    plt.plot(freq[:num_freq_bins], yf[:num_freq_bins]/DURATION)
+    plt.xlabel("Freq (Hz)")
     plt.show()
-    return np.abs(fft_transform)[0:nummber_of_freqs]
+    return np.abs(yf[:num_freq_bins])/DURATION
+
 
 def readAndCurateCurve(file, scaler):
     with open(file, 'rb') as f2:
