@@ -13,7 +13,7 @@ print(torch.backends.cudnn.version())
 print(torch.cuda.get_device_name(0))
 print(torch.cuda.get_device_properties(0))
 
-loader = Curve_Loader("~/LSR/modeling/input_data_with_fft.csv",fft_size=40)
+loader = Curve_Loader("~/LSR/modeling/input_data_with_fft.csv",fft_size=9)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 device = 'cpu'
@@ -24,7 +24,7 @@ print("Train size: ", train_size)
 print("Test size: ", test_size)
 train_set, val_set = torch.utils.data.random_split(loader, [train_size, test_size])
 
-model = Predict10(curve_size=40)
+model = Predict10(curve_size=9)
 model.to(device)
 batch_size = 64
 epochs = 1000
@@ -40,7 +40,7 @@ valLoader = DataLoader(val_set, batch_size=batch_size,num_workers=10, shuffle=Tr
 def makeCurve(curve, real_ten_nums, predicted_ten_nums):
     real_ten_nums = [round(item, 2) for item in real_ten_nums]
     predicted_ten_nums = [round(item, 2) for item in predicted_ten_nums]
-    plt.bar(range(0, 40, 1), curve)
+    plt.bar(range(0, 9, 1), curve)
     plt.text(0, 1, real_ten_nums, fontsize=8,c="green")
     plt.text(0, 0.96, predicted_ten_nums, fontsize=8,c="red")
     plt.show()

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.fftpack import rfftfreq
+from scipy.signal import find_peaks
 
 total_data = pd.DataFrame([])
 
@@ -21,7 +22,9 @@ for f in glob.glob("/home/mateo/LSR/example_database/train_data/*.pickle"):
     with open(f, 'rb') as file:
         a = pd.read_pickle(f)
         curve = a.curve.data_frame['value'].values
-        extracted_fft = fft_for_curve(curve, f_ratio=0.2)
+        curve[curve < 0] = 0
+        que = curve[find_peaks(curve, height=1, threshold=1)[0]]
+        extracted_fft = que[0:9]#fft_for_curve(curve, f_ratio=0.2)
         row = a.ten_nums
         row.append(-1)
         row.extend(extracted_fft)
