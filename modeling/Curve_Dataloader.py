@@ -15,10 +15,14 @@ class Curve_Loader(Dataset):
         self.scalerX = MinMaxScaler()
         self.scalerX_fft = MinMaxScaler()
         self.scalerY = MinMaxScaler()
-        self.y = pd.DataFrame(self.scalerY.fit_transform(self.annotation.iloc[:, :10])) # first 10 nums
-        self.x_fft = pd.DataFrame(self.scalerX.fit_transform(self.annotation.iloc[:, 11:(11+fft_size)])) # raw curve
-        self.x = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, (11+fft_size)::]))  # fft values
-        self.x_both = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, 11::]))  # fft values
+        self.y = pd.DataFrame(self.annotation.iloc[:, :10]) # first 10 nums
+        self.x_fft = pd.DataFrame(self.annotation.iloc[:, 11:(11+fft_size)]) # raw curve
+        self.x = pd.DataFrame(self.annotation.iloc[:, (11+fft_size)::])  # fft values
+        self.x_both = pd.DataFrame(self.annotation.iloc[:, 11::])  # fft values
+        #self.y = pd.DataFrame(self.scalerY.fit_transform(self.annotation.iloc[:, :10])) # first 10 nums
+        #self.x_fft = pd.DataFrame(self.scalerX.fit_transform(self.annotation.iloc[:, 11:(11+fft_size)])) # raw curve
+        #self.x = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, (11+fft_size)::]))  # fft values
+        #self.x_both = pd.DataFrame(self.scalerX_fft.fit_transform(self.annotation.iloc[:, 11::]))  # fft values
 
     def getScalerX(self):
         return self.scalerX_fft

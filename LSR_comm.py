@@ -22,7 +22,7 @@ class LSR_comm:
         msg = "{\"DO\":\"status\"}"
         self.send_any_command(msg)
 
-    def set_column_data(self, column, list_of_nums, coef=10):
+    def set_column_data(self, column, list_of_nums, coef=1):
 
         if len(list_of_nums) == 10:
             if column == 1:

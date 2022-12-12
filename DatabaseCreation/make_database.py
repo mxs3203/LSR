@@ -10,11 +10,11 @@ import time
 
 from DatabaseCreation.SpectraWizSaver import save_curve
 
-DIT = 10
+DIT = 15
 
 def main():
 
-    cnt = 793
+    cnt = 1
     # /dev/cu.usbmodem142201, COM3,/dev/ttyACM0
     lsr = LSR_comm("COM3")
     time.sleep(1) # waiting for autsomation start
