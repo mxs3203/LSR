@@ -38,6 +38,6 @@ class Curve_Loader(Dataset):
             idx = idx.tolist()
 
         y = np.array(self.y.iloc[idx, :], dtype="float")
-        x = np.array(self.x_fft.iloc[idx, :], dtype="float")
+        x = np.array(self.x.iloc[idx, :], dtype="float")
 
         return x, y
