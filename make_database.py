@@ -2,13 +2,13 @@ import os
 import pickle
 import random
 
-from DatabaseCreation import admin
-from TrainingDataCreation.DataContrainer import  Data
-from TrainingDataCreation.DatabaseItem import Item
+import admin
+from DataContrainer import  Data
+from DatabaseItem import Item
 from LSR_comm import LSR_comm
 import time
 
-from DatabaseCreation.SpectraWizSaver import save_curve
+from SpectraWizSaver import save_curve
 
 DIT = 15
 

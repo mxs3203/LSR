@@ -1,20 +1,18 @@
 import os
 import time
 
-from numpy.fft import fft, ifft
-
 import matplotlib.pyplot as plt
 
-from DatabaseCreation import admin
+import admin
 from LSR_comm import LSR_comm
-from DatabaseCreation.SpectraWizSaver import save_curve
+from SpectraWizSaver import save_curve
 from modeling.Curve_Dataloader import Curve_Loader
 from modeling.Predict10 import Predict10
 import torch
 import pandas as pd
 import numpy as np
 
-loader = Curve_Loader(r"../modeling/input_data_with_fft.csv", fft_size=30)
+loader = Curve_Loader(r"modeling/input_data_with_fft.csv", fft_size=30)
 scalerX = loader.getScalerX()
 scalerY = loader.getScalerY()
 

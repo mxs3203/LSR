@@ -1,0 +1,81 @@
+---
+title: "LSR"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(pheatmap)
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading the data
+
+```{r}
+nums_of_ffts = 30
+curve_points = 322
+ten_nums_cols = c(1,2,3,4,5,6,7,8,9,10)
+fft_cols = c(seq(12,11+nums_of_ffts)) # 12 because of 10 nums + -1 column and then 12th number is fft
+curve_cols = c(seq(12+nums_of_ffts, 10+nums_of_ffts+curve_points)) # 12 because of 10 nums + -1 column and then 12th number is curve
+
+data = read.delim("../modeling/input_data3_with_fft.csv", sep = "," )
+data = data[, -1]
+
+curves_df = data [, curve_cols]
+fft_df = data [, fft_cols]
+ten_num_df = data [, ten_nums_cols]
+colnames(fft_df) <- c(paste0("FFT",seq(1,30,1)))
+colnames(ten_num_df) <- c("UVa", "UVb", "DeepBlue", "Green", "CoolWhite", "WarmWhite", "Amber", "Red", "HyperRed", "FarRed")
+```
+
+## Correlated FFTs and 10 nums?
+
+```{r}
+# coolwhite, green, deep blue, UV-alpha, worm white, UB-beta, for-red, red, hyper red, amber
+pheatmap(cor(fft_df), cluster_rows = T, cluster_cols = T)
+
+pheatmap(cor(fft_df,ten_num_df), cluster_rows = T, cluster_cols = F, scale = "column", cutree_rows = 8)
+
+```
+
+
+## Correlation between 10nums and curves
+
+```{r}
+# coolwhite, green, deep blue, UV-alpha, worm white, UB-beta, for-red, red, hyper red, amber
+violet = seq(380,450)
+blue = seq(450,495)
+green = seq(495,570)
+yellow = seq(570,590)
+orange = seq(590,620)
+red = seq(620,750)
+above_red = seq(750, 850)
+pheatmap(t(cor(curves_df,ten_num_df)), cluster_rows = F, cluster_cols = F, scale = "row")
+
+# lets bin the curves by colors
+nm_nums = seq(350, 850,by = 0.311)
+nm_nums = nm_nums[seq(0, length(nm_nums), 5)] # Use this If curve is summarized
+nms = paste0("nm",nm_nums[1:curve_points-1])
+colnames(curves_df) <- nms
+
+violet_col = grep("351.*", colnames(curves_df))[1]
+blue_col = grep("450.*", colnames(curves_df))[1]
+green_col = grep("495.*", colnames(curves_df))[1]
+yellow_col = grep("570.*", colnames(curves_df))[1]
+orange_col = grep("590.*", colnames(curves_df))[1]
+red_col = grep("620.*", colnames(curves_df))[1]
+above_red_col = grep("750.*", colnames(curves_df))[1]
+
+summarize_colors = data.frame(violet = rowMeans(curves_df[, seq(violet_col, blue_col)]),
+                              blue = rowMeans(curves_df[, seq(blue_col, green_col)]),
+                              green = rowMeans(curves_df[, seq(green_col, yellow_col)]),
+                              yellow = rowMeans(curves_df[, seq(yellow_col, orange_col)]),
+                              orange = rowMeans(curves_df[, seq(orange_col, red_col)]),
+                              red = rowMeans(curves_df[, seq(red_col, above_red_col)]),
+                              above_red = rowMeans(curves_df[, seq(above_red_col, ncol(curves_df))]))
+
+pheatmap(cor(summarize_colors, ten_num_df),
+         scale = "column", cluster_rows = F, cluster_cols = F, 
+         main = "Correlation (scalled) between \ncurve mean values (y-axis) and ten numbers (x-axis)")
+
+```
