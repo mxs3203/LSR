@@ -34,7 +34,7 @@ def fitness_func(solution, soulution_idx):
     # # Spectra has to point to example_database folder before starting
     # save_curve("{}".format("recreated.ssm"))
     # print("Waiting for recreated file to be saved...")
-    # time.sleep(2)
+    # time.sleep(0.5)
     # while not os.path.exists("example_database/{}".format("recreated.ssm")):
     #     time.sleep(1)
     #
@@ -50,7 +50,7 @@ def fitness_func(solution, soulution_idx):
 fitness_function = fitness_func
 
 num_generations = 500
-num_parents_mating = 8
+num_parents_mating = 4
 
 sol_per_pop = 8
 num_genes = len(function_inputs)
@@ -64,7 +64,7 @@ keep_parents = 1
 crossover_type = "two_points"
 
 mutation_type = "random"
-mutation_percent_genes = 30
+mutation_percent_genes = 10
 
 ga_instance = pygad.GA(num_generations=num_generations,
                        num_parents_mating=num_parents_mating,
