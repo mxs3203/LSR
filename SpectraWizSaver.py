@@ -27,4 +27,5 @@ def save_curve(cnt, time_between = 0.01):
     pyautogui.typewrite(cnt)
     time.sleep(time_between)
     pyautogui.press("enter")
+    pyautogui.press("enter") # Probably for replace existing file
     time.sleep(time_between)
