@@ -72,7 +72,7 @@ def main(lsr, model_param, optimizer_param, loss_function_param, encoded_param, 
 
 def generate_random():
     max = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
-    return np.array(random.sample(range(1, 1000), 10))
+    return np.array(random.sample(range(1, 1000), 10), dtype="int")
 
 def find_params(model_param, optimizer_param, loss_function_param, ref_param, current_curve_param):
     current_curve = torch.Tensor([current_curve_param['value'].values])
@@ -93,7 +93,7 @@ def find_params(model_param, optimizer_param, loss_function_param, ref_param, cu
             losses.append(loss.item())
 
     encoded = encoded.squeeze().tolist()
-    encoded = (encoded * 1000.0) # model returns sigmoid
+    encoded = int((encoded * 1000.0)) # model returns sigmoid
     plot_curve(ref_param, reconstructed.detach().cpu())
     print("\t Current 10 vals: ", encoded)
     print("\t Average Error between curves: ", np.mean(losses))
