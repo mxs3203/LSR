@@ -13,7 +13,7 @@ def get_spectra_window():
     spectra.activate()
     return spectra
 
-def save_curve(cnt, time_between = 0.01):
+def save_curve(cnt, time_between = 0.001):
     spectra_window = get_spectra_window()
     pyautogui.keyDown("altleft")
     time.sleep(time_between)
@@ -27,5 +27,8 @@ def save_curve(cnt, time_between = 0.01):
     pyautogui.typewrite(cnt)
     time.sleep(time_between)
     pyautogui.press("enter")
-    pyautogui.press("enter") # Probably for replace existing file
+    time.sleep(time_between)
+    pyautogui.keyDown("altleft")
+    pyautogui.press("y")
+    pyautogui.keyUp('altleft')
     time.sleep(time_between)
