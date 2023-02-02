@@ -13,7 +13,7 @@ print(torch.backends.cudnn.version())
 print(torch.cuda.get_device_name(0))
 print(torch.cuda.get_device_properties(0))
 
-loader = Curve_Loader("~/LSR/modeling/input_data_with_fft.csv", fft_size=9)
+loader = Curve_Loader("~/LSR-main/modeling/input_data_with_fft.csv", fft_size=9)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 device = 'cpu'

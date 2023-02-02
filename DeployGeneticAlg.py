@@ -1,33 +1,39 @@
 import os
+import random
 import time
 
 import numpy as np
 import pygad
 import pandas as pd
+import torch
+import scipy.stats as st
 
 import admin
-from DeployAutoEncoder import generate_random
 from LSR_comm import LSR_comm
 from SpectraWizSaver import save_curve
 import matplotlib.pyplot as plt
 
+from modeling.Predict10 import Predict10
 
-if not admin.isUserAdmin():
-    admin.runAsAdmin()
+# if not admin.isUserAdmin():
+#     admin.runAsAdmin()
+def generate_random():
+    max = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
+    return np.array(random.sample(range(1, 1000), 10), dtype="int")
 
-def readAndCurateCurve(file):
+def readAndCurateCurve(file, EPS=0.0001):
     with open(file, 'rb') as f2:
         curve = pd.read_csv(f2, delimiter=" ", skiprows=1, names=['nm', 'ignore', 'value'])
         curve = curve.loc[(curve['nm'] >= 350) & (curve['nm'] <= 850)]
         curve = curve.groupby(np.arange(len(curve)) // 5).agg({"nm": 'mean', 'value': 'mean'})
         curve[curve < 0] = 0
-        #curve['value'] = transformToLog10(curve['value'] + EPS)
-        return curve
+        log10_curve = np.log10(curve['value'] + EPS)
+        return curve,log10_curve
 
-input_curve_file = r"C:\Users\Korisnik\Desktop\mlj15_1001_1158_uW.IRR"
+input_curve_file = "modeling/mlj15_1001_1158_uW.IRR"#r"C:\Users\Korisnik\Desktop\mlj15_1001_1158_uW.IRR"
 file_name = input_curve_file.split("\\")[-1]
 function_inputs = generate_random()
-desired_output_all = readAndCurateCurve(input_curve_file)
+desired_output_all, desired_log10_curve = readAndCurateCurve(input_curve_file)
 desired_output = desired_output_all['value'].values
 
 def scale_curve(x_in):
@@ -55,7 +61,7 @@ def fitness_func(solution, soulution_idx):
 
     print("\t Reading new HyperOCR data...")
     # Read HYperOCR (Current Curve)
-    sensor_reading = readAndCurateCurve("example_database/recreated.ssm")
+    sensor_reading,_ = readAndCurateCurve("example_database/recreated.ssm")
 
     #sensor_reading = np.random.randint(65000, size=201)
 
@@ -64,6 +70,59 @@ def fitness_func(solution, soulution_idx):
     print("Fitness: ", 1.0/mse)
     return 1.0/mse
 
+def findLSRTenNumberRange(log_10_curve):
+    device = "cpu"#torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    model = Predict10(curve_size=201)
+    model.to(device)
+    model.load_state_dict(torch.load("modeling/best_model.pth"))
+    model.eval()
+
+    solutions = []
+    for i in range(0, 1000):
+        sampl = np.random.uniform(low=-2, high=2, size=(201,))
+        noisy = np.array(log_10_curve + sampl, dtype="float")
+        predicted_ten_nums = model(torch.FloatTensor(noisy))
+        predicted_ten_nums = [int(10 ** (item - 0.0001)) for item in predicted_ten_nums]
+        solutions.append(predicted_ten_nums)
+    return pd.DataFrame(solutions)
+
+def findOptimalNumberForSplit(diff):
+    print("Diff:",diff)
+    if diff < 50:
+        return 2
+    if diff >= 50 and diff < 100:
+        return 3
+    else:
+        return 5
+
+
+def computeRange(ten_num_range_):
+    m = ten_num_range_.mean()
+    sd = ten_num_range_.std()
+    n = len(ten_num_range_)
+    Zstar = 1.96
+    lcb = m - Zstar * sd
+    ucb = m + Zstar * sd
+
+    my_min = 1000
+    my_max = -1
+    total = []
+    for i in range(0, 10):
+        if lcb[i] < 0:
+            lcb[i] = 0
+        if ucb[i] > 200:
+            ucb[i] = 200
+        if lcb[i] < my_min:
+            my_min = lcb[i]
+        if ucb[i] > my_max:
+            my_max = ucb[i]
+        print(lcb[i], ucb[i])
+        tmp_range = np.arange(int(lcb[i]), int(ucb[i]), findOptimalNumberForSplit(abs(int(lcb[i]) - int(ucb[i]))))
+        print(tmp_range)
+        total.append(tmp_range)
+    return total, my_min, my_max
+
 fitness_function = fitness_func
 
 num_generations = 20
@@ -71,9 +130,6 @@ num_parents_mating = 4
 
 sol_per_pop = 8
 num_genes = 10
-
-init_range_low = 0
-init_range_high = 50
 
 parent_selection_type = "sss"
 keep_parents = 2
@@ -91,6 +147,11 @@ morning_range = [np.arange(0,10,2).tolist(),np.arange(0,10,2).tolist(), np.arang
                                    np.arange(0,100,5).tolist(), np.arange(0,100,5).tolist(), np.arange(0,100,5).tolist(),
                                    np.arange(0,50,5).tolist(), np.arange(0,100,5).tolist(), np.arange(0,100,5).tolist(),
                                    np.arange(0,100,5).tolist()]
+
+simulated_range = findLSRTenNumberRange(desired_log10_curve)
+
+ten_num_range,init_range_low,init_range_high = computeRange(simulated_range)
+
 
 ga_instance = pygad.GA(num_generations=num_generations,
                        num_parents_mating=num_parents_mating,

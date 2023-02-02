@@ -7,15 +7,6 @@ import matplotlib.pyplot as plt
 total_data = pd.DataFrame([])
 EPS = 0.0001
 
-def fft_for_curve(curve, f_ratio=1, DURATION=201):
-    yf = np.fft.fft(curve)
-    freq = np.linspace(0, 1, len(yf))
-    num_freq_bins = int(len(freq) * f_ratio)
-    plt.plot(freq[:num_freq_bins], yf[:num_freq_bins]/DURATION)
-    plt.xlabel("Freq (Hz)")
-    plt.show()
-    return np.abs(yf[:num_freq_bins])/DURATION
-
 def find_values_by_color(curve_df):
     min_nm = min(curve_df['nm'])
     max_nm = max(curve_df['nm'])
@@ -40,7 +31,7 @@ def find_values_by_color(curve_df):
     after_red = after_red['value'].mean()
     return [violet, blue, cyan, green, yellow, orange, red, far_red, after_red]
 
-for f in glob.glob("/home/mateo/LSR/example_database/train_data/*.pickle"):
+for f in glob.glob("/home/mateo/LSR-main/example_database/train_data/*.pickle"):
     with open(f, 'rb') as file:
         a = pd.read_pickle(f)
         a.ten_nums = np.array(a.ten_nums)
@@ -48,12 +39,11 @@ for f in glob.glob("/home/mateo/LSR/example_database/train_data/*.pickle"):
         curve = a.curve.data_frame['value'].values
         curve[curve < 0] = 0
         curve = np.log10(curve+EPS)
-        extracted_fft = find_values_by_color(a.curve.data_frame)
+        curve = curve
         row = a.ten_nums
-        row = np.append(row, -1)
-        row = np.append(row, extracted_fft)
+        #row = np.append(row, -1)
         row = np.append(row, curve)
         total_data = pd.concat([total_data, pd.DataFrame(row).transpose()], ignore_index=True)
 
 print(total_data)
-total_data.to_csv("input_data_with_fft.csv")
+total_data.to_csv("~/LSR-main/modeling/input_data_with_fft.csv")
