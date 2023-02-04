@@ -10,11 +10,11 @@ class Data:
         self.file_to_read = file_to_read
         self.data_frame = self.read_new_data()
         self.original_data = self.data_frame
-        self.data_frame = self.data_frame.loc[(self.data_frame['nm'] >= data_range[0]) & (self.data_frame['nm'] <= data_range[1])]
+        #self.data_frame = self.data_frame.loc[(self.data_frame['nm'] >= data_range[0]) & (self.data_frame['nm'] <= data_range[1])]
         self.info = ""
         self.min_nm = data_range[0]
         self.max_nm = data_range[1]
-        self.data_frame = self.data_frame.iloc[::5, :]
+        #self.data_frame = self.data_frame.iloc[::5, :]
 
     def read_new_data(self):
         cols = ['nm', 'value']

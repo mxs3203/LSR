@@ -24,13 +24,13 @@ def generate_random(max):
 def readAndCurateCurve(file, EPS=0.0001):
     with open(file, 'rb') as f2:
         curve = pd.read_csv(f2, delimiter=" ", skiprows=1, names=['nm', 'ignore', 'value'])
-        curve = curve.loc[(curve['nm'] >= 350) & (curve['nm'] <= 850)]
+        curve = curve.loc[(curve['nm'] >= 350) & (curve['nm'] <= 750)]
         curve = curve.groupby(np.arange(len(curve)) // 5).agg({"nm": 'mean', 'value': 'mean'})
         curve[curve < 0] = 0
         log10_curve = np.log10(curve['value'] + EPS)
         return curve,log10_curve
 
-input_curve_file = r"C:\Users\Korisnik\Desktop\MLJET10_2022\2410_1319uW.IRR"
+input_curve_file = r"C:\Users\Korisnik\Desktop\MLJET10_2022\2110_1418oblacno_uW.IRR"
 file_name = input_curve_file.split("\\")[-1]
 desired_output_all, desired_log10_curve = readAndCurateCurve(input_curve_file)
 desired_output = desired_output_all['value'].values
@@ -72,14 +72,14 @@ def fitness_func(solution, soulution_idx):
 def findLSRTenNumberRange(log_10_curve):
     device = "cpu"#torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = Predict10(curve_size=201)
+    model = Predict10(curve_size=161)
     model.to(device)
     model.load_state_dict(torch.load("modeling/best_model.pth"))
     model.eval()
 
     solutions = []
     for i in range(0, 1000):
-        sampl = np.random.uniform(low=-4, high=4, size=(201,))
+        sampl = np.random.uniform(low=-1, high=1, size=(161,))
         noisy = np.array(log_10_curve + sampl, dtype="float")
         predicted_ten_nums = model(torch.FloatTensor(noisy))
         predicted_ten_nums = [int(10 ** (item - 0.0001)) for item in predicted_ten_nums]
@@ -89,11 +89,11 @@ def findLSRTenNumberRange(log_10_curve):
 def findOptimalNumberForSplit(diff):
     #print("Diff:",diff)
     if diff < 50:
-        return 1
-    if diff >= 50 and diff < 100:
         return 2
-    else:
+    if diff >= 50 and diff < 100:
         return 3
+    else:
+        return 5
 
 def computeRange(ten_num_range_):
     m = ten_num_range_.mean()
@@ -132,7 +132,7 @@ num_genes = 10
 parent_selection_type = "sss"
 keep_parents = 2
 
-crossover_type = "single_point"
+crossover_type = "scattered"
 
 mutation_type = "random"
 mutation_percent_genes = 20
@@ -234,4 +234,4 @@ for s in ga_instance.best_solutions:
 
 
 # wait for 100 sec
-time.sleep(100)
+time.sleep(10000)
