@@ -5,8 +5,8 @@ import time
 import numpy as np
 import pygad
 import pandas as pd
+import sklearn as sklearn
 import torch
-import scipy.stats as st
 
 import admin
 from LSR_comm import LSR_comm
@@ -15,11 +15,11 @@ import matplotlib.pyplot as plt
 
 from modeling.Predict10 import Predict10
 
-# if not admin.isUserAdmin():
-#     admin.runAsAdmin()
-def generate_random():
-    max = [100, 100, 100, 100, 100, 100, 100, 100, 100, 100]
-    return np.array(random.sample(range(1, 1000), 10), dtype="int")
+if not admin.isUserAdmin():
+    admin.runAsAdmin()
+
+def generate_random(max):
+    return np.array(random.sample(range(0, max), 10), dtype="int")
 
 def readAndCurateCurve(file, EPS=0.0001):
     with open(file, 'rb') as f2:
@@ -30,9 +30,8 @@ def readAndCurateCurve(file, EPS=0.0001):
         log10_curve = np.log10(curve['value'] + EPS)
         return curve,log10_curve
 
-input_curve_file = "modeling/mlj15_1001_1158_uW.IRR"#r"C:\Users\Korisnik\Desktop\mlj15_1001_1158_uW.IRR"
+input_curve_file = r"C:\Users\Korisnik\Desktop\MLJET10_2022\2410_1319uW.IRR"
 file_name = input_curve_file.split("\\")[-1]
-function_inputs = generate_random()
 desired_output_all, desired_log10_curve = readAndCurateCurve(input_curve_file)
 desired_output = desired_output_all['value'].values
 
@@ -80,7 +79,7 @@ def findLSRTenNumberRange(log_10_curve):
 
     solutions = []
     for i in range(0, 1000):
-        sampl = np.random.uniform(low=-2, high=2, size=(201,))
+        sampl = np.random.uniform(low=-4, high=4, size=(201,))
         noisy = np.array(log_10_curve + sampl, dtype="float")
         predicted_ten_nums = model(torch.FloatTensor(noisy))
         predicted_ten_nums = [int(10 ** (item - 0.0001)) for item in predicted_ten_nums]
@@ -88,14 +87,13 @@ def findLSRTenNumberRange(log_10_curve):
     return pd.DataFrame(solutions)
 
 def findOptimalNumberForSplit(diff):
-    print("Diff:",diff)
+    #print("Diff:",diff)
     if diff < 50:
-        return 2
+        return 1
     if diff >= 50 and diff < 100:
-        return 3
+        return 2
     else:
-        return 5
-
+        return 3
 
 def computeRange(ten_num_range_):
     m = ten_num_range_.mean()
@@ -117,15 +115,15 @@ def computeRange(ten_num_range_):
             my_min = lcb[i]
         if ucb[i] > my_max:
             my_max = ucb[i]
-        print(lcb[i], ucb[i])
+        #print(lcb[i], ucb[i])
         tmp_range = np.arange(int(lcb[i]), int(ucb[i]), findOptimalNumberForSplit(abs(int(lcb[i]) - int(ucb[i]))))
-        print(tmp_range)
+        tmp_range = sklearn.utils.shuffle(tmp_range)
         total.append(tmp_range)
     return total, my_min, my_max
 
 fitness_function = fitness_func
 
-num_generations = 20
+num_generations = 10
 num_parents_mating = 4
 
 sol_per_pop = 8
@@ -139,19 +137,15 @@ crossover_type = "single_point"
 mutation_type = "random"
 mutation_percent_genes = 20
 
-day_time_range = [np.arange(0,300,20).tolist(),np.arange(0,350,20).tolist(), np.arange(0,250,20).tolist(),
-                                   np.arange(0,400,20).tolist(), np.arange(0,300,20).tolist(), np.arange(0,500,20).tolist(),
-                                   np.arange(0,200,20).tolist(), np.arange(0,200,20).tolist(), np.arange(0,350,20).tolist(),
-                                   np.arange(0,400,20).tolist()]
-morning_range = [np.arange(0,10,2).tolist(),np.arange(0,10,2).tolist(), np.arange(0,50,10).tolist(),
-                                   np.arange(0,100,5).tolist(), np.arange(0,100,5).tolist(), np.arange(0,100,5).tolist(),
-                                   np.arange(0,50,5).tolist(), np.arange(0,100,5).tolist(), np.arange(0,100,5).tolist(),
-                                   np.arange(0,100,5).tolist()]
-
 simulated_range = findLSRTenNumberRange(desired_log10_curve)
 
-ten_num_range,init_range_low,init_range_high = computeRange(simulated_range)
-
+print("1",simulated_range)
+ten_num_range, init_range_low, init_range_high = computeRange(simulated_range)
+print("2", ten_num_range)
+print("3",init_range_low)
+print("4",init_range_high)
+function_inputs = generate_random(int(init_range_high))
+print("5",function_inputs)
 
 ga_instance = pygad.GA(num_generations=num_generations,
                        num_parents_mating=num_parents_mating,
@@ -159,7 +153,7 @@ ga_instance = pygad.GA(num_generations=num_generations,
                        sol_per_pop=sol_per_pop,
                        num_genes=num_genes,
                        gene_type=int,
-                       gene_space=day_time_range,
+                       gene_space=None,
                        init_range_low=init_range_low,
                        init_range_high=init_range_high,
                        parent_selection_type=parent_selection_type,
@@ -168,8 +162,7 @@ ga_instance = pygad.GA(num_generations=num_generations,
                        mutation_type=mutation_type,
                        mutation_percent_genes=mutation_percent_genes,
                        keep_elitism=1,
-                       save_best_solutions=True,
-                       stop_criteria=["reach_400"])
+                       save_best_solutions=True)
 
 ga_instance.run()
 print(ga_instance.best_solutions)
@@ -189,15 +182,15 @@ lsr.set_column_data(3, lsr.compute_column_based_on_first(0.5))
 lsr.set_column_data(4, lsr.compute_column_based_on_first(0.3))
 lsr.run()
 
-save_curve("{}".format("recreated.ssm"))
+save_curve("{}".format("recreated.IRR"))
 print("Waiting for recreated file to be saved...")
 time.sleep(0.5)
-while not os.path.exists("example_database/{}".format("recreated.ssm")):
+while not os.path.exists("example_database/{}".format("recreated.IRR")):
     time.sleep(1)
 
 print("\t Reading new HyperOCR data...")
 # Read HYperOCR (Current Curve)
-sensor_reading = readAndCurateCurve("example_database/recreated.ssm")
+sensor_reading, _ = readAndCurateCurve("example_database/recreated.IRR")
 # Compare the two curves
 plt.plot(sensor_reading['nm'].values, sensor_reading['value'].values)
 plt.plot(desired_output_all['nm'].values, desired_output_all['value'].values)
@@ -216,15 +209,15 @@ for s in ga_instance.best_solutions:
     lsr.set_column_data(4, lsr.compute_column_based_on_first(0.3))
     lsr.run()
 
-    save_curve("{}".format("recreated.ssm"))
+    save_curve("{}".format("recreated.IRR"))
     print("Waiting for recreated file to be saved...")
     time.sleep(0.5)
-    while not os.path.exists("example_database/{}".format("recreated.ssm")):
+    while not os.path.exists("example_database/{}".format("recreated.IRR")):
         time.sleep(1)
 
     print("\t Reading new HyperOCR data...")
     # Read HYperOCR (Curreynt Curve)
-    sensor_reading = readAndCurateCurve("example_database/recreated.ssm")
+    sensor_reading, _ = readAndCurateCurve("example_database/recreated.IRR")
     # Compare the two curves
     plt.plot(sensor_reading['nm'].values, sensor_reading['value'].values)
     plt.plot(desired_output_all['nm'].values, desired_output_all['value'].values)

@@ -14,7 +14,7 @@ print(torch.cuda.get_device_name(0))
 print(torch.cuda.get_device_properties(0))
 
 loader = Curve_Loader("~/LSR-main/modeling/input_data_with_fft.csv", fft_size=9)
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+#device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 device = 'cpu'
 
@@ -24,7 +24,7 @@ print("Train size: ", train_size)
 print("Test size: ", test_size)
 train_set, val_set = torch.utils.data.random_split(loader, [train_size, test_size])
 
-model = Predict10(curve_size=201)
+model = Predict10(curve_size=54)
 model.to(device)
 batch_size = 64
 epochs = 2000
