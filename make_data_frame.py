@@ -7,6 +7,15 @@ import matplotlib.pyplot as plt
 total_data = pd.DataFrame([])
 EPS = 0.0001
 
+def fft_for_curve(curve, f_ratio=1, DURATION=201):
+    yf = np.fft.fft(curve)
+    freq = np.linspace(0, 1, len(yf))
+    num_freq_bins = int(len(freq) * f_ratio)
+    plt.plot(freq[:num_freq_bins], yf[:num_freq_bins]/DURATION)
+    plt.xlabel("Freq (Hz)")
+    plt.show()
+    return np.abs(yf[:num_freq_bins])/DURATION
+
 def find_values_by_color(curve_df):
     min_nm = min(curve_df['nm'])
     max_nm = max(curve_df['nm'])
@@ -31,19 +40,23 @@ def find_values_by_color(curve_df):
     after_red = after_red['value'].mean()
     return [violet, blue, cyan, green, yellow, orange, red, far_red, after_red]
 
-for f in glob.glob("/home/mateo/LSR-main/example_database/train_data/*.pickle"):
+for f in glob.glob(r"C:\Users\Korisnik\Desktop\LSR-main\example_database\train_data\*.pickle"):
     with open(f, 'rb') as file:
         a = pd.read_pickle(f)
         a.ten_nums = np.array(a.ten_nums)
         a.ten_nums = np.log10(a.ten_nums + EPS)
-        curve = a.curve.data_frame['value'].values
+        data_frame = pd.DataFrame(pd.DataFrame.transpose(a.curve.data_frame).T)
+        data_frame = data_frame.loc[(data_frame['nm'] >= 350) & (data_frame['nm'] <= 750)]
+        data_frame = data_frame.groupby(np.arange(len(data_frame)) // 3).agg({"nm": 'mean', 'value': 'mean'})
+        curve = data_frame['value'].values
         curve[curve < 0] = 0
+
         curve = np.log10(curve+EPS)
-        curve = curve
+        #extracted_fft = find_values_by_color(a.curve.data_frame)
         row = a.ten_nums
-        #row = np.append(row, -1)
+        #row = np.append(row, extracted_fft)
         row = np.append(row, curve)
         total_data = pd.concat([total_data, pd.DataFrame(row).transpose()], ignore_index=True)
 
 print(total_data)
-total_data.to_csv("~/LSR-main/modeling/input_data_with_fft.csv")
+total_data.to_csv("input_data_with_fft.csv")
