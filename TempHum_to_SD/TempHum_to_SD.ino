@@ -3,11 +3,10 @@
 #include <SD.h>
 #include <SPI.h>
 File myFile;
-char fileName[] = "sensor_reading.csv";
-const int chipSelect = 10;
+const int chipSelect = 4;
 
 //Constants
-#define DHTPIN 3     // what pin we're connected to
+#define DHTPIN 2     // what pin we're connected to
 #define DHTTYPE DHT22   // DHT 22  (AM2302)
 DHT dht(DHTPIN, DHTTYPE); //// Initialize DHT sensor for normal 16mhz Arduino
 
@@ -21,17 +20,12 @@ void setup()
 {
   Serial.begin(9600);
   dht.begin();
-  if (SD.begin(chipSelect))
-  {
-    Serial.println("SD card is present & ready");
-    deleteFile();
-    writeToFile("SecPassed,Temp,Humidity");
-  } 
-  else
+  if (!SD.begin(chipSelect))
   {
     Serial.println("SD card missing or failure");
     while(1);  //wait here forever
   }
+  SD.remove("datalog.txt");
 }
 
 void loop()
@@ -44,34 +38,18 @@ void loop()
     Serial.print(" %, Temp: ");
     Serial.print(temp);
     Serial.println(" Celsius");
-    writeToFile(buf.c_str());
-    sec = sec + 5;
-    delay(5000); 
-}
+    File dataFile = SD.open("datalog.txt", FILE_WRITE);
 
-void writeToFile(char* content)
-{
-  myFile = SD.open(fileName, FILE_WRITE);
-  if (myFile) // it opened OK
-    {
-      Serial.println("Writing to a file...");
-      myFile.println(content);
-      myFile.close(); 
-      Serial.println("Done");
-    }
-  else 
-    Serial.println("Error opening simple.txt");
+  // if the file is available, write to it:
+  if (dataFile) {
+    dataFile.println(buf);
+    dataFile.close();
+    // print to the serial port too:
+    Serial.println(buf);
+  }
+  else {
+    Serial.println("error opening datalog.txt");
+  }
+  sec = sec + 30;
+  delay(30000); 
 }
-
-void deleteFile()
-{
- //delete a file:
-  if (SD.exists(fileName)) 
-  {
-    Serial.println("Removing file..");
-    SD.remove(fileName);
-    Serial.println("Done");
-  } 
-}
-
-   
